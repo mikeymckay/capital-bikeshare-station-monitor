@@ -1,0 +1,50 @@
+body{
+  background-color: #181907;
+  font-family: Helvetica;
+/*  background-image:url('notredame_tweeked.png'); */
+  background-repeat: no-repeat;
+  background-position: top right;
+}
+body, a, a:visited, button, input, select{
+  color: #CECEF6;
+}
+a, a:visited, button, input, select{
+  border: 1px solid #393B0B;
+  text-decoration: none;
+  font-size: small;
+  padding: 2px;
+  margin: 2px;
+  background-color: #181907;
+}
+a:focus {
+  color: #CECEF6;
+  background-color: #393B0B;
+}
+h1{
+  position: fixed;
+  right: 0px;
+  top: 40%;
+  color: #393B0B;
+}
+div #navigation{
+  position: fixed;
+  left: 10px;
+  bottom: 10px;
+  color: #393B0B;
+}
+div #messages{
+  position: fixed;
+  right: 10px;
+  top: 10px;
+}
+#messages, .hidden{
+  display:none;
+}
+.box{
+  background-color: #181907;
+  display: inline-block;
+  border: 1px solid #393B0B;
+}
+form.rendered_form_field{
+  display: inline-block;
+}

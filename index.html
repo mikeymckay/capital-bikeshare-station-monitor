@@ -3,6 +3,7 @@
 <html> 
 	<head> 
 	<title>Capital Bikeshare</title> 
+	<link rel='stylesheet' href='style.css' />
 	<script type='text/javascript' src='jquery.min.js'></script>
 	<script type='text/javascript' src='flot/jquery.flot.min.js'></script>
 	<script type='text/javascript' src='sammy.min.js'></script>
@@ -10,7 +11,8 @@
 </head> 
 <body>
 <div id='index'>
-  <input  type="text" class="filter" name="liveFilter" />
+  <h2>Select a station</h2>
+  Filter by name: <input  type="text" class="filter" name="liveFilter" />
   <ul id="stationsList"></ul>
 </div>
 <div id='station'>
