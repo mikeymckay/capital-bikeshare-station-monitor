@@ -5,10 +5,33 @@
 	<title>Capital Bikeshare</title> 
 	<script type='text/javascript' src='jquery.min.js'></script>
 	<script type='text/javascript' src='flot/jquery.flot.min.js'></script>
+	<script type='text/javascript' src='sammy.min.js'></script>
+	<script type='text/javascript' src='jquery.liveFilter.js'></script>
 </head> 
 <body>
-<div id="plot" style="width:600px;height:300px"></div>
+<div id='index'>
+  <input  type="text" class="filter" name="liveFilter" />
+  <ul id="stationsList"></ul>
+</div>
+<div id='station'>
+  <span id='station-name'></span>
+  <div id="plot" style="width:600px;height:300px"></div>
+  <a id='select' href='#/stations'>Select other station</a>
+</div>
 </body>
+<script>
+  stationIndexCallback = function (data){
+    stationsList = ""
+    stations = {}
+    var stationData = data.query.results.stations.station;
+    for (i=0;i<stationData.length;i++){
+      station = stationData[i];
+      stations[station.id] = station;
+      stationsList += "<li><a href='#/station/"+station.id+"'>"+station.name+"</a></li>";
+    }
+  }
+</script>
+<script type="text/javascript" src="http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20xml%20where%20url%3D'http%3A%2F%2Fwww.capitalbikeshare.com%2Fstations%2FbikeStations.xml'&format=json&diagnostics=true&callback=stationIndexCallback"></script>
 <script type="text/javascript">
   plotStationCallback = function (data){
     var plotData = [];
@@ -18,7 +41,7 @@
     $.plot($("#plot"), [plotData], {
       xaxis: {
         mode: "time",
-        timeformat: "%d %H:%M%s",
+        timeformat: "%d %H:%M",
       }
     });
   }
@@ -28,6 +51,26 @@
     url = url + "&callback=plotStationCallback";
     $('body').append("<script src='" + url + "'/>");
   }
-  plotStation(document.location.hash.replace(/#/,""))
+
+  $('#stationsList').liveFilter('basic');
+
+  // Setup hash routing
+  var app = Sammy('#index', function() {
+    this.get('#/station/:id', function() {
+      var id = this.params["id"]
+      $('#station').show();
+      $('#index').hide();
+      $('#station-name').html(stations[id].name)
+      plotStation(id);
+    });
+    this.get('#/stations', function() {
+      $('#station').hide();
+      $('#index').show();
+      $('#stationsList').html(stationsList);
+    });
+  });
+  // start the routing
+  app.run('#/stations');
+
 </script>
 </html>
