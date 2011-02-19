@@ -15,18 +15,16 @@
     for(i=0;i<data.rows.length;i++){
       plotData.push(data.rows[i].value);
     }
-    console.log(plotData);
     $.plot($("#plot"), [plotData], {
       xaxis: {
         mode: "time",
         timeformat: "%d %H:%M%s",
       }
-      
     });
   }
 
   function plotStation(stationId){
-    url = "http://127.0.0.1:5984/capital-bikeshare/_design/stations/_view/by_id?key=%22"+stationId+"%22";
+    url = "http://mikeymckay.couchone.com/capital-bikeshare/_design/stations/_view/by_id?key=%22"+stationId+"%22";
     url = url + "&callback=plotStationCallback";
     $('body').append("<script src='" + url + "'/>");
   }
