@@ -1,0 +1,35 @@
+
+<!DOCTYPE html> 
+<html> 
+	<head> 
+	<title>Capital Bikeshare</title> 
+	<script type='text/javascript' src='jquery.min.js'></script>
+	<script type='text/javascript' src='flot/jquery.flot.min.js'></script>
+</head> 
+<body>
+<div id="plot" style="width:600px;height:300px"></div>
+</body>
+<script type="text/javascript">
+  plotStationCallback = function (data){
+    var plotData = [];
+    for(i=0;i<data.rows.length;i++){
+      plotData.push(data.rows[i].value);
+    }
+    console.log(plotData);
+    $.plot($("#plot"), [plotData], {
+      xaxis: {
+        mode: "time",
+        timeformat: "%d %H:%M%s",
+      }
+      
+    });
+  }
+
+  function plotStation(stationId){
+    url = "http://127.0.0.1:5984/capital-bikeshare/_design/stations/_view/by_id?key=%22"+stationId+"%22";
+    url = url + "&callback=plotStationCallback";
+    $('body').append("<script src='" + url + "'/>");
+  }
+  plotStation(document.location.hash.replace(/#/,""))
+</script>
+</html>
