@@ -68,7 +68,8 @@
       var id = this.params["id"]
       $('#station').show();
       $('#index').hide();
-      $('#station-name').html(stations[id].name)
+      $('#station-name').html(stations[id].name);
+      $.plot($("#plot"), [],{});
       plotStation(id);
     });
     this.get('#/stations', function() {
