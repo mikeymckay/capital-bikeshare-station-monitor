@@ -16,7 +16,8 @@
   <ul id="stationsList"></ul>
 </div>
 <div id='station'>
-  <span id='station-name'></span>
+  <div id='station-name'></div>
+  <div>Number of bikes available</div>
   <div id="plot" style="width:600px;height:300px"></div>
   <a id='select' href='#/stations'>Select other station</a>
 </div>
@@ -44,6 +45,11 @@
       xaxis: {
         mode: "time",
         timeformat: "%d %H:%M",
+      },
+      series: {
+        lines: { show: false } ,
+        points: { show: true, radius: 2},
+        bars: { show: true }
       }
     });
   }
