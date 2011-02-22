@@ -49,7 +49,12 @@ This project was inspired by <a href='http://tomtaylor.co.uk'>Tom Taylor</a>'s <
     $.plot($("#plot"), [{label: "Number of bikes", data: plotData}], {
       xaxis: {
         mode: "time",
-        timeformat: "%d %H:%M",
+//        timeformat: "%d %H:%M",
+        tickFormatter: function (val, axis){
+          record_date = new Date(val);
+          return ["Sun","Mon","Tue","Wed","Thu","Fri","Sat","Sun"][record_date.getDay()] + " " + record_date.getHours() + ":" + record_date.getMinutes();
+
+        }
       },
       series: {
         lines: { show: false } ,
