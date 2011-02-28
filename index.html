@@ -5,6 +5,7 @@
 	<link rel='stylesheet' href='style.css' />
 	<script type='text/javascript' src='jquery.min.js'></script>
 	<script type='text/javascript' src='flot/jquery.flot.min.js'></script>
+	<script type='text/javascript' src='flot/jquery.flot.selection.min.js'></script>
 	<script type='text/javascript' src='sammy.min.js'></script>
 	<script type='text/javascript' src='jquery.liveFilter.js'></script>
 </head> 
@@ -18,13 +19,15 @@ The Capital Bikeshare Station Monitor shows you the <b>history of bike availabil
 </div>
 <div id='station'>
   <div id='station-name'></div>
+  <div id='periods' style=''>Minutes without... bikes: <span id='periodsNoBikes'></span> docks: <span id='periodsNoDocks'></div>
+  <div id="overview" style="width:300px;height:100px"></div>
+  <div style='font-size:0.6em'>Click on graphs to zoom</div>
   <div id="plot" style="width:800px;height:300px"></div>
   <a id='select' href='#/stations'>Select other station</a>
 </div>
-<div>
-<small>
+<br/>
+<div style='font-size:0.6em'>
 This project was inspired by <a href='http://tomtaylor.co.uk'>Tom Taylor</a>'s <a href='http://cyclehire.tomtaylor.co.uk/'>London Cycle Hire Explorer</a>. It uses <a href='http://couchone.com'>CouchOne</a>'s kick ass hosted <a href='http://couchdb.apache.org'>CouchDB</a> service, <a href='http://code.google.com/p/flot/'>Flot</a>'s javascript plotting sweetness, <a href='http://sammyjs.org'>Sammy.js</a> for righteous routing, and <a href='http://github.com'>Github</a> to fork you up with free open source code (<a href='http://github.com/mikeymckay/capital-bikeshare-station-monitor'>fork this project</a> and improve it please!).
-</small>
 </div>
 </body>
 <script>
@@ -44,9 +47,11 @@ This project was inspired by <a href='http://tomtaylor.co.uk'>Tom Taylor</a>'s <
   plotStationCallback = function (data){
     var plotData = [];
     for(i=0;i<data.rows.length;i++){
-      plotData.push(data.rows[i].value);
+      timestamp = data.rows[i].value[0] * 1000;
+      numberBikes = data.rows[i].value[1];
+      plotData.push([timestamp,numberBikes]);
     }
-    $.plot($("#plot"), [{label: "Number of bikes", data: plotData}], {
+    var plotOptions = {
       xaxis: {
         mode: "time",
         tickFormatter: function (val, axis){
@@ -58,15 +63,76 @@ This project was inspired by <a href='http://tomtaylor.co.uk'>Tom Taylor</a>'s <
       },
       series: {
         lines: { show: false } ,
-        points: { show: true, radius: 2},
+        points: { show: true, radius: 1},
         bars: { show: true }
-      }
+      },
+      selection: {mode: "x"}
+    }
+    var plot = $.plot($("#plot"), [{label: "Number of bikes", data: plotData}], plotOptions);
+    var overview = $.plot($("#overview"), [{data: plotData}], {
+      xaxis: {
+        mode: "time",
+        tickFormatter: function (val, axis){
+          record_date = new Date(val);
+          return ["Sun","Mon","Tue","Wed","Thu","Fri","Sat","Sun"][record_date.getDay()]
+        }
+      },
+      series: {
+        lines: { show: false } ,
+        points: { show: false },
+        bars: { show: true }
+      },
+      selection: {mode: "x"}
     });
+
+    $("#plot").bind("plotselected", function (event, ranges) {
+      plotOptions.xaxis.min = ranges.xaxis.from;
+      plotOptions.xaxis.max = ranges.xaxis.to;
+
+      // redraw the main plot with the new axes limits
+      var plot = $.plot($("#plot"), [{label: "Number of bikes", data: plotData}], plotOptions);
+      
+      // don't fire event on the overview to prevent eternal loop
+      overview.setSelection(ranges, true);
+    });
+
+    $("#overview").bind("plotselected", function (event, ranges) {
+      plot.setSelection(ranges);
+    });
+
   }
 
-  function plotStation(stationId){
+  function plotStation(){
     url = "http://mikeymckay.couchone.com/capital-bikeshare/_design/stations/_view/nb_bikes_by_id?key=%22"+stationId+"%22";
     url = url + "&callback=plotStationCallback";
+    $('body').append("<script src='" + url + "'/>");
+  }
+
+  function rowsToHash(data){
+    var result = {};
+    for (i=0;i<data.rows.length;i++){
+      result[data.rows[i].key] = data.rows[i].value
+    }
+    return result;
+  }
+
+  emptyStationCallback = function (data){
+    $('#periodsNoBikes').html(5*rowsToHash(data)[stationId])
+    $('#periods').show();
+  }
+
+  fullStationCallback = function (data){
+    $('#periodsNoDocks').html(5*rowsToHash(data)[stationId] || 0 )
+    $('#periods').show();
+  }
+
+  function emptyFullPeriods(stationId){
+    url = "http://mikeymckay.couchone.com/capital-bikeshare/_design/stations/_view/empty_periods?group=true"
+    url = url + "&callback=emptyStationCallback";
+    $('body').append("<script src='" + url + "'/>");
+
+    url = "http://mikeymckay.couchone.com/capital-bikeshare/_design/stations/_view/full_periods?group=true"
+    url = url + "&callback=fullStationCallback";
     $('body').append("<script src='" + url + "'/>");
   }
 
@@ -75,12 +141,15 @@ This project was inspired by <a href='http://tomtaylor.co.uk'>Tom Taylor</a>'s <
   // Setup hash routing
   var app = Sammy('#index', function() {
     this.get('#/station/:id', function() {
-      var id = this.params["id"]
+      stationId = this.params["id"]
       $('#station').show();
       $('#index').hide();
-      $('#station-name').html(stations[id].name);
+      $('#periods').hide();
+      $('#station-name').html(stations[stationId].name);
       $.plot($("#plot"), [],{});
-      plotStation(id);
+      $.plot($("#overview"), [],{});
+      plotStation();
+      emptyFullPeriods();
     });
     this.get('#/stations', function() {
       $('#station').hide();
