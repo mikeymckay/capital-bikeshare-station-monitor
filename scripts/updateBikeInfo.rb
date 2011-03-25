@@ -3,8 +3,8 @@ require 'nokogiri'
 require 'open-uri'
 require 'couchrest'
 
-#database_uri = "http://mikeymckay.couchone.com/capital-bikeshare"
-database_uri = "http://localhost:5984/test"
+database_uri = "http://mikeymckay.couchone.com/capital-bikeshare"
+#database_uri = "http://localhost:5984/test"
 
 current_time = Time.now.to_i
 

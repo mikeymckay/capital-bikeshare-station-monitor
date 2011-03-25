@@ -19,7 +19,7 @@ The Capital Bikeshare Station Monitor shows you the <b>history of bike availabil
 </div>
 <div id='station'>
   <div id='station-name'></div>
-  <div id='periods' style=''>Minutes without... bikes: <span id='periodsNoBikes'></span> docks: <span id='periodsNoDocks'></div>
+  <div id='periods' style=''>Hours without... bikes: <span id='periodsNoBikes'></span> docks: <span id='periodsNoDocks'></div>
   <div id="overview" style="width:300px;height:100px"></div>
   <div style='font-size:0.6em'>Click on graphs to zoom</div>
   <div id="plot" style="width:800px;height:300px"></div>
@@ -44,6 +44,9 @@ This project was inspired by <a href='http://tomtaylor.co.uk'>Tom Taylor</a>'s <
 </script>
 <script type="text/javascript" src="http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20xml%20where%20url%3D'http%3A%2F%2Fwww.capitalbikeshare.com%2Fstations%2FbikeStations.xml'&format=json&diagnostics=true&callback=stationIndexCallback"></script>
 <script type="text/javascript">
+
+  baseurl = "/capital-bikeshare/_design/capital-bikeshare-couchapp"
+
   plotStationCallback = function (data){
     var plotData = [];
     for(i=0;i<data.rows.length;i++){
@@ -103,7 +106,7 @@ This project was inspired by <a href='http://tomtaylor.co.uk'>Tom Taylor</a>'s <
   }
 
   function plotStation(){
-    url = "http://mikeymckay.couchone.com/capital-bikeshare/_design/stations/_view/nb_bikes_by_id?key=%22"+stationId+"%22";
+    var url = baseurl + "/_view/nb_bikes_by_id?key=%22"+stationId+"%22";
     url = url + "&callback=plotStationCallback";
     $('body').append("<script src='" + url + "'/>");
   }
@@ -117,22 +120,22 @@ This project was inspired by <a href='http://tomtaylor.co.uk'>Tom Taylor</a>'s <
   }
 
   emptyStationCallback = function (data){
-    $('#periodsNoBikes').html(5*rowsToHash(data)[stationId])
+    $('#periodsNoBikes').html((5.0/60*rowsToHash(data)[stationId]).toFixed(1) || 0 )
     $('#periods').show();
   }
 
   fullStationCallback = function (data){
-    $('#periodsNoDocks').html(5*rowsToHash(data)[stationId] || 0 )
+    $('#periodsNoDocks').html((5.0/60*rowsToHash(data)[stationId]).toFixed(1) || 0 )
     $('#periods').show();
   }
 
   function emptyFullPeriods(stationId){
-    url = "http://mikeymckay.couchone.com/capital-bikeshare/_design/stations/_view/empty_periods?group=true"
-    url = url + "&callback=emptyStationCallback";
+    var url = baseurl + "_view/empty_periods?group=true"
+    url += "&callback=emptyStationCallback";
     $('body').append("<script src='" + url + "'/>");
 
-    url = "http://mikeymckay.couchone.com/capital-bikeshare/_design/stations/_view/full_periods?group=true"
-    url = url + "&callback=fullStationCallback";
+    url = baseurl + "_view/full_periods?group=true"
+    url += "&callback=fullStationCallback";
     $('body').append("<script src='" + url + "'/>");
   }
 
